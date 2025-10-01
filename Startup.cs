@@ -8,6 +8,9 @@ using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using StackExchange.Redis;
+using EchoBot.Repository;
+using EchoBot.Command;
 
 namespace EchoBot
 {
@@ -33,6 +36,15 @@ namespace EchoBot
 
             // Create the Bot Adapter with error handling enabled.
             services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
+
+            // Configure Redis
+            var redisConnection = Configuration.GetValue<string>("RedisConnection");
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+                ConnectionMultiplexer.Connect(redisConnection));
+            services.AddSingleton<ICacheRepository, RedisCacheRepository>();
+
+            // Configure Command Factory
+            services.AddSingleton<CommandFactory>();
 
             // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
             // services.AddTransient<IBot, Bots.EchoBot>();
